@@ -1,5 +1,7 @@
-from fastapi import Query,  APIRouter, Body
+from fastapi import Query, APIRouter, Body
 from Schemas.hotels import Hotel,  HotelPATCH
+from dependencies import  PginationDep
+
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
@@ -14,15 +16,8 @@ hotels = [
 ]
 
 def pagination(page, per_page, hotels_):
-    total = len(hotels_)
-    if page < 1 or per_page <1:
-        return {"Status": "Error"}
     start = (page - 1) * per_page
-    if start > total:
-        return {"Status": "Error1"}
     end = start + per_page
-    if end > total:
-        end = total
     hotels_ = hotels_[start:end]
     return hotels_
 
@@ -30,10 +25,9 @@ def pagination(page, per_page, hotels_):
 
 @router.get("")
 def get_hotels(
+        paginations: PginationDep,
         id: int |None=Query(None, description="Айдишник"),
-        title: str |None = Query(None, description="Название города"),
-        page:int|None = Query(1),
-        per_page:int|None = Query(3),
+        title: str |None = Query(None, description="Название города")
 ):
     hotels_ = []
     for hotel in hotels:
@@ -42,7 +36,8 @@ def get_hotels(
         if title and hotel["title"] != title:
             continue
         hotels_.append(hotel)
-    pagination_hotels = pagination(page, per_page, hotels_)
+
+    pagination_hotels = pagination(paginations.page, paginations.per_page, hotels_)
     return pagination_hotels
 
 @router.delete("/{hotel_id}")
