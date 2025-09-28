@@ -1,11 +1,19 @@
 
 
-from fastapi import FastAPI, Query, Body
+from fastapi import FastAPI
 import uvicorn
 import asyncio
 import time
 import threading
-from hotels import router as hotels_router
+
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).parent.parent))
+
+
+from src.api.hotels import router as hotels_router
+
 
 
 app = FastAPI()
