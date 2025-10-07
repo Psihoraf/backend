@@ -5,6 +5,7 @@ from src.database import async_session_maker
 from sqlalchemy import insert, select
 
 from src.models.hotels import HotelsOrm
+from src.repositories.hotels import HotelsRepository
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
@@ -24,26 +25,14 @@ async def get_hotels(
         title: str |None = Query(None, description="Название города"),
         location: str|None = Query(None, description="Адрес отеля")
 ):
-    per_page = paginations.per_page or 5
     async with async_session_maker() as session:
-        query = select(HotelsOrm)
+        return await HotelsRepository(session).get_all(
+            location = location,
+            title = title,
+            limit=paginations.per_page or 5,
+            offset=paginations.per_page * (paginations.page - 1)
+        )
 
-
-        if title:
-            query = query.filter(HotelsOrm.title.ilike(f"%{title}%"))
-        if location:
-            query = query.filter(HotelsOrm.location.ilike(f"%{location}%"))
-
-
-        query = query.limit(paginations.per_page).offset(paginations.per_page * (paginations.page - 1))
-        result = await session.execute(query)
-
-        hotels = result.scalars().all()
-        print(type(hotels), hotels)
-        return hotels
-
-    #pagination_hotels = pagination(paginations.page, paginations.per_page, hotels_)
-    #return pagination_hotels
 
 @router.delete("/{hotel_id}")
 def delete_hotel(
@@ -63,15 +52,21 @@ async def create_hotel(
             "2":{"summary": "Дубай", "value":{
                 "title":"Pleasure",
                 "location":"улица дубровская",
+            }},
+            "3":{"summary": "Екатеринбург", "value":{
+                "title":"Charm",
+                "location":"Екатеринбург, улица золотого сечения 3",
             }}
         })
 ):
     async with async_session_maker() as session:
-        add_hotel_stmt = insert(HotelsOrm).values(**data_hotel.model_dump())
-        print(add_hotel_stmt.compile(compile_kwargs={"literal_binds": True}))
-        await session.execute(add_hotel_stmt)
+        repo = HotelsRepository(session)
+
+
+        hotel = await repo.add(data_hotel)
+
         await session.commit()
-    return {"Status":"OK"}
+    return {"Status":"OK", "data": hotel}
 
 @router.patch("/{hotel_id}")
 def patch_hotel(
