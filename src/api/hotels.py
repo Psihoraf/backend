@@ -33,15 +33,24 @@ async def get_hotels(
             offset=paginations.per_page * (paginations.page - 1)
         )
 
+@router.get("/{hotel_id}")
+async def get_hotel(hotel_id: int):
+    async with async_session_maker() as session:
+        hotel = await HotelsRepository(session).get_one_or_none(id = hotel_id)
+    return hotel
+
 
 @router.delete("/{hotel_id}")
 async def delete_hotel(
         hotel_id:int
 ):
     async with async_session_maker() as session:
+        if not await HotelsRepository(session).check_existence(hotel_id):
+            return {"Status": "Error", "Message": "Hotel not found "}
+
         await HotelsRepository(session).delete(hotel_id)
         await session.commit()
-    return {"status":"OK"}
+    return {"Status":"OK"}
 
 @router.post("")
 async def create_hotel(
@@ -70,18 +79,15 @@ async def create_hotel(
     return {"Status":"OK", "data": hotel}
 
 @router.patch("/{hotel_id}")
-def patch_hotel(
+async def patch_hotel(
         hotel_id:int,
-        hotel_patch: HotelPATCH
+        hotel_data: HotelPATCH
 ):
+    async with async_session_maker() as session:
+        await HotelsRepository(session).edit(hotel_data, True, id = hotel_id )
+        await session.commit()
+    return {"Status": "OK"}
 
-    for hotel in hotels:
-        if hotel_id and hotel["id"] == hotel_id:
-            if hotel_patch.title is not None:
-                hotel["title"] = hotel_patch.title
-            if hotel_patch.name is not None:
-                hotel["name"] = hotel_patch.name
-            return hotel
 
 
 @router.put("/{hotel_id}")
@@ -90,7 +96,10 @@ async def put_hotel(
         data_hotel:Hotel
 
 ):
+
     async with async_session_maker() as session:
-        await HotelsRepository(session).edit(data_hotel, hotel_id)
+        if not await HotelsRepository(session).check_existence(hotel_id):
+            return {"Status": "Error", "Message": "Hotel not found "}
+        await HotelsRepository(session).edit(data_hotel, False, id = hotel_id)
         await session.commit()
     return {"Status" : "OK"}

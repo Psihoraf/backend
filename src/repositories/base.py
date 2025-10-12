@@ -1,3 +1,5 @@
+from sqlalchemy import exists
+
 from pydantic import BaseModel
 from sqlalchemy import select, insert, delete, update
 
@@ -18,11 +20,11 @@ class BaseRepository:
     async def get_one_or_none(self, **filter_by):
         query = select(self.model).filter_by(**filter_by)
         result = await self.session.execute(query)
-        return result.scalars().one_ore_none()
+        return result.scalars().one_or_none()
 
-    async def add(self, data_hotel):
+    async def add(self, data:BaseModel):
 
-            add_hotel_stmt = insert(self.model).values(**data_hotel.model_dump()).returning(self.model)
+            add_hotel_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
             print(add_hotel_stmt.compile(compile_kwargs={"literal_binds": True}))
             result = await self.session.execute(add_hotel_stmt)
             return result.scalar_one()
@@ -31,16 +33,22 @@ class BaseRepository:
         query = delete(self.model).where(self.model.id == hotel_id)
         await self.session.execute(query)
 
-    async def edit(self, data: BaseModel, hotel_id):
+
+    async def edit(self, data: BaseModel, isPatch: bool = False, **filter_by):
 
         query = (
-    update(self.model)
-    .where(self.model.id == hotel_id)
-    .values(**data.model_dump())
-    .returning(self.model)
+            update(self.model)
+            .filter_by(**filter_by)
+            .values(**data.model_dump(exclude_unset=isPatch))
+            .returning(self.model)
     )
         await self.session.execute(query)
 
+
+    async def check_existence(self, hotel_id):
+        query = select(exists().where(self.model.id == hotel_id))
+        result = await self.session.execute(query)
+        return result.scalar_one()
 
 
 
