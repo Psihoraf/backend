@@ -1,5 +1,5 @@
 from fastapi import Query, APIRouter, Body
-from src.Schemas.hotels import Hotel,  HotelPATCH
+from src.Schemas.hotels import Hotel, HotelPATCH, HotelAdd
 from src.api.dependencies import  PginationDep
 from src.database import async_session_maker
 from sqlalchemy import insert, select
@@ -54,7 +54,7 @@ async def delete_hotel(
 
 @router.post("")
 async def create_hotel(
-        data_hotel: Hotel = Body(openapi_examples ={
+        data_hotel: HotelAdd = Body(openapi_examples ={
             "1":{"summary": "Сочи", "value":{
                 "title":"Delux",
                 "location":"Сочи, улица камышевского",
@@ -93,7 +93,7 @@ async def patch_hotel(
 @router.put("/{hotel_id}")
 async def put_hotel(
         hotel_id:int,
-        data_hotel:Hotel
+        data_hotel:HotelAdd
 
 ):
 

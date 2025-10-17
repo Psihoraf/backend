@@ -1,5 +1,7 @@
+from pydantic import BaseModel
 from sqlalchemy import select, insert
 
+from src.Schemas.hotels import Hotel
 from src.database import async_session_maker
 from src.models.hotels import HotelsOrm
 from src.repositories.base import BaseRepository
@@ -7,6 +9,7 @@ from src.repositories.base import BaseRepository
 
 class HotelsRepository(BaseRepository):
     model = HotelsOrm
+    schema = Hotel
 
     async  def get_all(self, location, title, limit, offset ):
 
@@ -22,7 +25,7 @@ class HotelsRepository(BaseRepository):
             query = query.limit(limit).offset(offset)
             result = await self.session.execute(query)
 
-            return result.scalars().all()
+            return [self.schema.model_validate(model) for model in result.scalars().all()]
 
 
 
