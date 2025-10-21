@@ -16,3 +16,6 @@ class UserRequestAdd(UserModel):
 class UserAdd(UserModel):
     email:EmailStr
     hashed_password: str
+
+class UserWithHashedPassword(User):
+    hashed_password: str
