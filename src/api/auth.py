@@ -5,6 +5,8 @@ from sqlalchemy.exc import IntegrityError
 
 
 from src.Schemas.users import UserRequestAdd, UserAdd, User
+from src.api.dependencies import UserIdDep
+
 from src.database import async_session_maker
 from src.repositories.users import UsersRepository
 from src.services.auth import AuthService
@@ -47,7 +49,15 @@ async def login_user(data: UserRequestAdd, response:Response):
         return {"access_token": access_token}
 
 
-@router.get("/only_auth")
-async def only_auth(request: Request):
-    access_token = request.cookies.get("access_token") or None
-    return {"access_token": access_token}
+@router.get("/me")
+async def me(user_id:UserIdDep):
+
+    async with async_session_maker() as session:
+        user = await UsersRepository(session).get_one_or_none(id = user_id)
+    return user
+
+@router.delete("/logout")
+async def logout_user(response:Response):
+    async with async_session_maker() :
+        response.delete_cookie("access_token")
+    return {"Status":"OK"}
