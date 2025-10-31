@@ -13,7 +13,7 @@ class HotelsRepository(BaseRepository):
 
     async  def get_all(self, location, title, limit, offset ):
 
-         async with async_session_maker() as session:
+         async with async_session_maker():
             query = select(HotelsOrm)
 
             if title:
@@ -26,6 +26,8 @@ class HotelsRepository(BaseRepository):
             result = await self.session.execute(query)
 
             return [self.schema.model_validate(model) for model in result.scalars().all()]
+
+
 
 
 

@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy import exists
 
 from pydantic import BaseModel
@@ -35,6 +36,7 @@ class BaseRepository:
         return self.schema.model_validate(model)
 
 
+
     async def delete(self, hotel_id):
         query = delete(self.model).where(self.model.id == hotel_id)
         await self.session.execute(query)
@@ -53,8 +55,8 @@ class BaseRepository:
 
     async def check_existence(self, hotel_id):
         query = select(exists().where(self.model.id == hotel_id))
-        result = await self.session.execute(query)
-        return result.scalar_one()
+        if not query:
+            raise HTTPException(status_code=404, detail="Hotel not found")
 
 
 
