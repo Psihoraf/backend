@@ -48,7 +48,7 @@ async def delete_hotel(
         if not await HotelsRepository(session).check_existence(hotel_id):
             return {"Status": "Error", "Message": "Hotel not found "}
 
-        await HotelsRepository(session).delete(hotel_id)
+        await HotelsRepository(session).delete(id = hotel_id)
         await session.commit()
     return {"Status":"OK"}
 
@@ -98,8 +98,7 @@ async def put_hotel(
 ):
 
     async with async_session_maker() as session:
-        if not await HotelsRepository(session).check_existence(hotel_id):
-            return {"Status": "Error", "Message": "Hotel not found "}
+
         await HotelsRepository(session).edit(data_hotel, False, id = hotel_id)
         await session.commit()
     return {"Status" : "OK"}

@@ -37,8 +37,8 @@ class BaseRepository:
 
 
 
-    async def delete(self, hotel_id):
-        query = delete(self.model).where(self.model.id == hotel_id)
+    async def delete(self, **filter_by):
+        query = delete(self.model).filter_by(**filter_by)
         await self.session.execute(query)
 
 
