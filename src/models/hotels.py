@@ -2,7 +2,6 @@ from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database import Base
-from src.models.rooms import RoomsOrm
 
 
 class HotelsOrm(Base):
