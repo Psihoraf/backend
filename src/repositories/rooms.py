@@ -14,9 +14,9 @@ class RoomsRepository(BaseRepository):
     schema = RoomsResponse
 
     async def get_room_of_hotel_id(self, **filter_by):
-        async with async_session_maker() as session:
-            query = select(self.model).filter_by(**filter_by)
 
-            result = await session.execute(query)
-            return  [self.schema.model_validate(model) for model in result.scalars().all()]
+        query = select(self.model).filter_by(**filter_by)
+
+        result = await self.session.execute(query)
+        return  [self.schema.model_validate(model) for model in result.scalars().all()]
 

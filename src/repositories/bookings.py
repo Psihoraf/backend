@@ -2,25 +2,17 @@
 
 from sqlalchemy import insert, select
 
-from src.Schemas.bookings import Booking
+from src.Schemas.bookings import Booking, BookingAdd
 
-from src.models.bookings import BookingOrm
+from src.models.bookings import BookingsOrm
 from src.repositories.base import BaseRepository
 
 class BookingsRepository(BaseRepository):
-    model = BookingOrm
+    model = BookingsOrm
     schema = Booking
 
-    async def get_current_room_price(self, room_id):
-        query = select(self.model.price).where(self.model.room_id == room_id)
-        result = await self.session.execute(query)
-        price = result.scalar_one_or_none()
-        return price
+    async def get_bookings_of_user_id(self, **filter_by):
+        query = select(self.model).filter_by(**filter_by)
 
-    async def book_room_now(self, data_booking:Booking, ):
-
-        data_booking.price = self.model.total_cost
-        query = insert(self.model).values(**data_booking.model_dump()).returning(self.model)
         result = await self.session.execute(query)
-        model = result.scalars().one()
-        return self.schema.model_validate(model)
+        return [self.schema.model_validate(model) for model in result.scalars().all()]
