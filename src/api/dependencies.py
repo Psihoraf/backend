@@ -13,7 +13,7 @@ class PaginationParams(BaseModel):
     page: Annotated[ int | None, Query(1, ge=1)]
     per_page: Annotated[ int | None , Query(3, ge=0, lt=30)]
 
-PginationDep = Annotated[ PaginationParams, Depends()]
+PaginationDep = Annotated[ PaginationParams, Depends()]
 
 
 def get_token(request: Request)->str:

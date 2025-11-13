@@ -11,8 +11,3 @@ class BookingsRepository(BaseRepository):
     model = BookingsOrm
     schema = Booking
 
-    async def get_bookings_of_user_id(self, **filter_by):
-        query = select(self.model).filter_by(**filter_by)
-
-        result = await self.session.execute(query)
-        return [self.schema.model_validate(model) for model in result.scalars().all()]

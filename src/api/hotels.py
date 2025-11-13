@@ -1,6 +1,8 @@
+from datetime import date
+
 from fastapi import Query, APIRouter, Body
 from src.Schemas.hotels import Hotel, HotelPATCH, HotelAdd
-from src.api.dependencies import PginationDep, DBDep
+from src.api.dependencies import  DBDep, PaginationDep
 from src.database import async_session_maker
 from sqlalchemy import insert, select
 
@@ -20,18 +22,23 @@ def pagination(page, per_page, hotels_):
 
 @router.get("")
 async def get_hotels(
-        paginations: PginationDep,
+        pagination: PaginationDep,
         db: DBDep,
-        title: str |None = Query(None, description="Название города"),
-        location: str|None = Query(None, description="Адрес отеля")
+        location: str | None = Query(None, description="Локация"),
+        title: str | None = Query(None, description="Название отеля"),
+        date_from: date = Query(example="2025-08-01"),
+        date_to: date = Query(example="2025-08-10"),
 ):
-
-    return await db.hotels.get_all(
-        location = location,
-        title = title,
-        limit=paginations.per_page or 5,
-        offset=paginations.per_page * (paginations.page - 1)
-        )
+    per_page = pagination.per_page or 5
+    #
+    return await db.hotels.get_filtered_by_time(
+        date_from=date_from,
+        date_to=date_to,
+        location=location,
+        title=title,
+        limit=per_page,
+        offset=per_page * (pagination.page - 1)
+    )
 
 @router.get("/{hotel_id}")
 async def get_hotel(hotel_id: int, db: DBDep):

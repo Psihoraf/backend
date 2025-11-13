@@ -1,22 +1,25 @@
-from sqlalchemy import select
+from datetime import date
+
+from sqlalchemy import select, func
 
 from src.Schemas.rooms import  RoomsResponse
+from src.database import engine
 
-from src.database import async_session_maker
+from src.models.bookings import BookingsOrm
 from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository
-
-
+from src.repositories.utils import rooms_ids_for_booking
 
 
 class RoomsRepository(BaseRepository):
     model = RoomsOrm
     schema = RoomsResponse
 
-    async def get_room_of_hotel_id(self, **filter_by):
-
-        query = select(self.model).filter_by(**filter_by)
-
-        result = await self.session.execute(query)
-        return  [self.schema.model_validate(model) for model in result.scalars().all()]
-
+    async def get_filtered_by_time(
+            self,
+            hotel_id,
+            date_from: date,
+            date_to: date,
+    ):
+        rooms_ids_to_get = rooms_ids_for_booking(date_from, date_to, hotel_id)
+        return await self.get_filtered(RoomsOrm.id.in_(rooms_ids_to_get))

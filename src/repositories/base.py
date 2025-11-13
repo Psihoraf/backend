@@ -52,6 +52,15 @@ class BaseRepository:
     )
         await self.session.execute(query)
 
+    async def get_filtered(self, *filter, **filter_by):
+        query = (
+            select(self.model)
+            .filter(*filter)
+            .filter_by(**filter_by)
+        )
+        result = await self.session.execute(query)
+        return [self.schema.model_validate(model) for model in result.scalars().all()]
+
 
     async def check_existence(self, hotel_id):
         query = select(exists().where(self.model.id == hotel_id))
