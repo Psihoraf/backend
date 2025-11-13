@@ -11,4 +11,3 @@ class HotelsOrm(Base):
     title: Mapped[str]= mapped_column(String(100))
     location: Mapped[str]
 
-    rooms: Mapped[list["RoomsOrm"]] = relationship(backref="hotels")

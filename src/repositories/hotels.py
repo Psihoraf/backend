@@ -15,21 +15,6 @@ class HotelsRepository(BaseRepository):
     model = HotelsOrm
     schema = Hotel
 
-    async  def get_all(self, location, title, limit, offset ):
-
-         async with async_session_maker():
-            query = select(HotelsOrm)
-
-            if title:
-                query = query.filter(HotelsOrm.title.ilike(f"%{title}%"))
-            if location:
-                query = query.filter(HotelsOrm.location.ilike(f"%{location}%"))
-
-
-            query = query.limit(limit).offset(offset)
-            result = await self.session.execute(query)
-
-            return [self.schema.model_validate(model) for model in result.scalars().all()]
 
     async def get_filtered_by_time(
             self,
@@ -42,11 +27,15 @@ class HotelsRepository(BaseRepository):
             select(RoomsOrm.hotel_id)
             .select_from(RoomsOrm)
             .filter(RoomsOrm.id.in_(rooms_ids_to_get))
+            .distinct()
         )
+        query = select(HotelsOrm).filter(HotelsOrm.id.in_(hotels_ids_to_get))
         if location:
-            hotels_ids_to_get = hotels_ids_to_get.filter(HotelsOrm.location.ilike(f"%{location}%"))
+            query = query.filter(HotelsOrm.location.ilike(f"%{location}%"))
         if title:
-            hotels_ids_to_get = hotels_ids_to_get.filter(HotelsOrm.title.ilike(f"%{title}%"))
+            query = query.filter(HotelsOrm.title.ilike(f"%{title}%"))
 
-        hotels_ids_to_get = hotels_ids_to_get.limit(limit).offset(offset)
-        return await self.get_filtered(HotelsOrm.id.in_(hotels_ids_to_get))
+        query = query.limit(limit).offset(offset)
+        result = await self.session.execute(query)
+
+        return [Hotel.model_validate(hotel, from_attributes=True) for hotel in result.scalars().all()]
