@@ -2,9 +2,10 @@ from datetime import date
 
 from fastapi import APIRouter, Query, Body, HTTPException
 
+from src.Schemas.facilities import RoomsFacilitiesAdd
 from src.api.dependencies import DBDep
 from src.models.hotels import HotelsOrm
-from src.Schemas.rooms import RoomsAdd, RoomsResponse
+from src.Schemas.rooms import RoomsAdd, RoomsResponse, RoomsAddRequest, RoomsPATCH
 from src.database import async_session_maker
 
 from src.repositories.rooms import RoomsRepository
@@ -31,10 +32,10 @@ async def get_rooms(
     return await db.rooms.get_filtered_by_time(hotel_id=hotel_id, date_from=date_from, date_to=date_to)
 
 @router.post("/rooms")
-async def add_room( db:DBDep,data_room: RoomsAdd = Body(openapi_examples=
+async def add_room(hotel_id: int, db:DBDep,data_room: RoomsAddRequest = Body(openapi_examples=
     {
         "1": {"summary": "Крутой", "value": {
-            "hotel_id":1,
+
             "title": "ВИП1",
             "description": "Самый лучший номер",
             "price":2000,
@@ -42,7 +43,7 @@ async def add_room( db:DBDep,data_room: RoomsAdd = Body(openapi_examples=
 
         }},
         "2": {"summary": "Нормальный", "value": {
-            "hotel_id":13,
+
             "title": "Дефолт",
             "description": "Обычный номер",
             "price":1000,
@@ -50,7 +51,7 @@ async def add_room( db:DBDep,data_room: RoomsAdd = Body(openapi_examples=
 
         }},
         "3": {"summary": "Дешевый", "value": {
-            "hotel_id":2,
+
             "title": "Бедный",
             "description": "Самый дешевый номер",
             "price":500,
@@ -62,10 +63,12 @@ async def add_room( db:DBDep,data_room: RoomsAdd = Body(openapi_examples=
 
               ):
 
-    hotel = await db.get(HotelsOrm, data_room.hotel_id)
-    if not hotel:
-        raise HTTPException(status_code=404, detail="Hotel not found")
-    await db.rooms.add(data_room)
+    data_room_ = RoomsAdd(hotel_id=hotel_id, **data_room.model_dump())
+
+    room = await db.rooms.add(data_room_)
+
+    rooms_facilities_data = [RoomsFacilitiesAdd(room_id=room.id, facility_id=f_id) for f_id in data_room.facilities_ids]
+    await db.rooms_facilities.add_bulk(rooms_facilities_data)
     await db.commit()
 
     return {"Status":"OK"}
@@ -84,7 +87,7 @@ async def delete_room(room_id:int, db:DBDep):
 async def patch_room(
         db:DBDep,
         room_id: int,
-        data_room: RoomsAdd = Body(openapi_examples=
+        data_room: RoomsPATCH = Body(openapi_examples=
         {
             "1": {"summary": "Королевский", "value": {
                 "hotel_id": 17,
@@ -92,15 +95,18 @@ async def patch_room(
                 "description": "Королевский номер",
                 "price": 35000,
                 "quantity": 1,
+                "facilities_ids": [3]
 
             }},
         })
 ):
+    data_room_ = RoomsAdd(**data_room.model_dump())
 
-    hotel = await db.get(HotelsOrm, data_room.hotel_id)
-    if not hotel:
-        raise HTTPException(status_code=404, detail="Hotel not found")
-    await db.rooms.edit(data_room, False, id=room_id)
+    await db.rooms.edit(data_room_, True, id=room_id)
+
+    rooms_facilities_data = [RoomsFacilitiesAdd(room_id=room_id, facility_id=f_id) for f_id in data_room.facilities_ids]
+
+    await db.rooms_facilities.edit_bulk(rooms_facilities_data, room_id=room_id)
     await db.commit()
     return {"Status": "OK"}
 

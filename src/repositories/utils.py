@@ -6,6 +6,8 @@ from src.models.bookings import BookingsOrm
 from src.models.rooms import RoomsOrm
 
 
+
+
 def rooms_ids_for_booking(
         date_from: date,
         date_to: date,

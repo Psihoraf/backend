@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy import select, insert, delete, update
 
 from src.database import async_session_maker
+from src.models.facilities import RoomsFacilitiesORM
 
 
 class BaseRepository:
@@ -35,6 +36,21 @@ class BaseRepository:
         model = result.scalars().one()
         return self.schema.model_validate(model)
 
+    async def add_bulk(self, data: list[BaseModel]):
+        add_hotel_stmt = insert(self.model).values([item.model_dump() for item in data])
+        await self.session.execute(add_hotel_stmt)
+
+
+    async def edit_bulk(self, data: list[BaseModel], **filter_by):
+
+        curios = (
+            delete(self.model).filter_by(**filter_by)
+        )
+        await self.session.execute(curios)
+        await self.add_bulk(data)
+
+
+
 
 
     async def delete(self, **filter_by):
@@ -52,6 +68,8 @@ class BaseRepository:
     )
         await self.session.execute(query)
 
+
+        await self.session.execute(query)
     async def get_filtered(self, *filter, **filter_by):
         query = (
             select(self.model)

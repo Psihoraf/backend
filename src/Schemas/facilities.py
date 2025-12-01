@@ -10,3 +10,10 @@ class FacilityAdd(FacilityModel):
 
 class Facility(FacilityAdd):
     id:int
+
+class RoomsFacilitiesAdd(FacilityModel):
+    room_id:int
+    facility_id:int
+
+class RoomFacility(RoomsFacilitiesAdd):
+    id:int
