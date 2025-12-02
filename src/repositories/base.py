@@ -44,10 +44,35 @@ class BaseRepository:
     async def edit_bulk(self, data: list[BaseModel], **filter_by):
 
         curios = (
-            delete(self.model).filter_by(**filter_by)
+            select(RoomsFacilitiesORM).filter_by(**filter_by)
         )
-        await self.session.execute(curios)
-        await self.add_bulk(data)
+        result = await self.session.execute(curios)
+        current_result = result.scalars().all()
+
+        current_facility_ids = {record.facility_id for record in current_result}
+        new_facility_ids = {item.facility_id for item in data}
+
+        to_delete_ids = current_facility_ids-new_facility_ids
+        to_add_ids = new_facility_ids-current_facility_ids
+
+        if to_delete_ids:
+            delete_stmt=(
+                delete(self.model)
+                .filter_by(**filter_by)
+                .where(
+                    self.model.facility_id.in_(to_delete_ids)
+                )
+            )
+            await self.session.execute(delete_stmt)
+        if to_add_ids:
+
+            data_to_add = [item for item in data if item.facility_id in to_add_ids]
+
+
+            orm_objects = [self.model(**item.model_dump()) for item in data_to_add]
+
+            self.session.add_all(orm_objects)
+
 
 
 

@@ -2,7 +2,7 @@ from datetime import date
 
 from fastapi import APIRouter, Query, Body, HTTPException
 
-from src.Schemas.facilities import RoomsFacilitiesAdd
+from src.Schemas.facilities import RoomsFacilitiesAdd, Facility
 from src.api.dependencies import DBDep
 from src.models.hotels import HotelsOrm
 from src.Schemas.rooms import RoomsAdd, RoomsResponse, RoomsAddRequest, RoomsPATCH
@@ -100,11 +100,15 @@ async def patch_room(
             }},
         })
 ):
+
     data_room_ = RoomsAdd(**data_room.model_dump())
 
     await db.rooms.edit(data_room_, True, id=room_id)
 
     rooms_facilities_data = [RoomsFacilitiesAdd(room_id=room_id, facility_id=f_id) for f_id in data_room.facilities_ids]
+    facilities = [f_id for f_id in data_room.facilities_ids]
+
+    await db.facilities.check_bulk(facilities)
 
     await db.rooms_facilities.edit_bulk(rooms_facilities_data, room_id=room_id)
     await db.commit()
