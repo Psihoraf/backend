@@ -1,11 +1,12 @@
 from datetime import date
 
 from fastapi import APIRouter, Query, Body, HTTPException
+from sqlalchemy import false
 
 from src.Schemas.facilities import RoomsFacilitiesAdd, Facility
 from src.api.dependencies import DBDep
 from src.models.hotels import HotelsOrm
-from src.Schemas.rooms import RoomsAdd, RoomsResponse, RoomsAddRequest, RoomsPATCH
+from src.Schemas.rooms import RoomsAdd, RoomsResponse,  RoomPatchRequest, RoomPatch
 from src.database import async_session_maker
 
 from src.repositories.rooms import RoomsRepository
@@ -32,7 +33,7 @@ async def get_rooms(
     return await db.rooms.get_filtered_by_time(hotel_id=hotel_id, date_from=date_from, date_to=date_to)
 
 @router.post("/rooms")
-async def add_room(hotel_id: int, db:DBDep,data_room: RoomsAddRequest = Body(openapi_examples=
+async def add_room(hotel_id: int, db:DBDep,data_room: RoomPatchRequest = Body(openapi_examples=
     {
         "1": {"summary": "Крутой", "value": {
 
@@ -86,11 +87,12 @@ async def delete_room(room_id:int, db:DBDep):
 @router.patch("/rooms/{room_id}")
 async def patch_room(
         db:DBDep,
+        hotel_id:int,
         room_id: int,
-        data_room: RoomsPATCH = Body(openapi_examples=
+
+        data_room: RoomPatchRequest = Body(openapi_examples=
         {
             "1": {"summary": "Королевский", "value": {
-                "hotel_id": 17,
                 "title": "Королевский",
                 "description": "Королевский номер",
                 "price": 35000,
@@ -101,40 +103,50 @@ async def patch_room(
         })
 ):
 
-    data_room_ = RoomsAdd(**data_room.model_dump())
+    _room_data_dict = data_room.model_dump(exclude_unset=True)
+    _room_data = RoomPatch(hotel_id=hotel_id, **_room_data_dict)
 
-    await db.rooms.edit(data_room_, True, id=room_id)
+    await db.rooms.edit(_room_data, True, id=room_id)
 
-    rooms_facilities_data = [RoomsFacilitiesAdd(room_id=room_id, facility_id=f_id) for f_id in data_room.facilities_ids]
-    facilities = [f_id for f_id in data_room.facilities_ids]
+    if "facilities_ids" in _room_data_dict:
 
-    await db.facilities.check_bulk(facilities)
 
-    await db.rooms_facilities.edit_bulk(rooms_facilities_data, room_id=room_id)
+        facilities = [f_id for f_id in data_room.facilities_ids]
+
+        await db.facilities.check_bulk(facilities)
+
+        await db.rooms_facilities.edit_bulk(facilities, room_id)
     await db.commit()
     return {"Status": "OK"}
 
 @router.put("/rooms/{room_id}")
-async def put_room(db:DBDep,room_id: int, data_room:RoomsAdd = Body(openapi_examples=
-    {
-        "1": {"summary": "Царский", "value": {
-            "hotel_id":18,
-            "title": "Царский",
-            "description": "Царский номер",
-            "price":10000,
-            "quantity":2,
+async def put_room (db:DBDep,
+        hotel_id:int,
+        room_id: int,
 
-        }},
-    })
-                   ):
+        data_room: RoomPatchRequest = Body(openapi_examples=
+        {
+            "1": {"summary": "Королевский", "value": {
+                "title": "Арташесовский",
+                "description": "Арташесвокий номер",
+                "price": 100,
+                "quantity": 30,
+                "facilities_ids": [1, 3]
 
+            }},
+        })
+):
 
-    hotel = await db.get(HotelsOrm, data_room.hotel_id)
-    if not hotel:
-        raise HTTPException(status_code=404, detail="Hotel not found")
-    await db.rooms.edit(data_room, False, id = room_id)
+    _room_data_dict = data_room.model_dump()
+    _room_data = RoomsAdd(hotel_id=hotel_id, **_room_data_dict)
+
+    await db.rooms.edit(_room_data, False, id=room_id)
+
+    facilities = [f_id for f_id in data_room.facilities_ids]
+
+    await db.facilities.check_bulk(facilities)
+
+    await db.rooms_facilities.edit_bulk(facilities, room_id)
     await db.commit()
-
     return {"Status": "OK"}
-
 

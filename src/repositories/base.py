@@ -41,37 +41,34 @@ class BaseRepository:
         await self.session.execute(add_hotel_stmt)
 
 
-    async def edit_bulk(self, data: list[BaseModel], **filter_by):
+    async def edit_bulk(self, facilities_ids: list[int], room_id:int):
 
-        curios = (
-            select(RoomsFacilitiesORM).filter_by(**filter_by)
+        get_current_facilities_ids = (
+            select(self.model.facility_id).filter_by(room_id=room_id)
         )
-        result = await self.session.execute(curios)
-        current_result = result.scalars().all()
+        result = await self.session.execute(get_current_facilities_ids)
+        current_facilities_ids = result.scalars().all()
 
-        current_facility_ids = {record.facility_id for record in current_result}
-        new_facility_ids = {item.facility_id for item in data}
 
-        to_delete_ids = current_facility_ids-new_facility_ids
-        to_add_ids = new_facility_ids-current_facility_ids
+
+        to_delete_ids : list[int] =list(set(current_facilities_ids)-set(facilities_ids))
+        to_add_ids : list[int] =list(set(facilities_ids)-set( current_facilities_ids))
 
         if to_delete_ids:
             delete_stmt=(
                 delete(self.model)
-                .filter_by(**filter_by)
+                .filter_by(room_id = room_id)
                 .where(
                     self.model.facility_id.in_(to_delete_ids)
                 )
             )
             await self.session.execute(delete_stmt)
         if to_add_ids:
-
-            data_to_add = [item for item in data if item.facility_id in to_add_ids]
-
-
-            orm_objects = [self.model(**item.model_dump()) for item in data_to_add]
-
-            self.session.add_all(orm_objects)
+            insert_m2m_facilities_stmt = (
+                insert(self.model)
+                .values([{"room_id": room_id, "facility_id": f_id} for f_id in to_add_ids])
+            )
+            await self.session.execute(insert_m2m_facilities_stmt)
 
 
 
