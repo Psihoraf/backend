@@ -3,9 +3,9 @@ from sqlalchemy import exists
 
 from pydantic import BaseModel
 from sqlalchemy import select, insert, delete, update
+from sqlalchemy.orm import selectinload, joinedload
 
-from src.database import async_session_maker
-from src.models.facilities import RoomsFacilitiesORM
+from src.Schemas.rooms import RoomsWithRels
 
 
 class BaseRepository:
@@ -20,13 +20,19 @@ class BaseRepository:
         result = await self.session.execute(query)
         return [self.schema.model_validate(model) for model in result.scalars().all()]
 
-    async def get_one_or_none(self, **filter_by):
-        query = select(self.model).filter_by(**filter_by)
+    async def get_one_or_none(self, *filters, **filter_by ):
+        query = (select(self.model)
+                .options(joinedload(self.model.facilities))
+                 .filter(*filters)
+                .filter_by(**filter_by))
+
+
+
         result = await self.session.execute(query)
-        model = result.scalars().one_or_none()
+        model = result.unique().scalars().one_or_none()
         if model is None:
             return None
-        return self.schema.model_validate(model)
+        return RoomsWithRels.model_validate(model)
 
     async def add(self, data:BaseModel):
 

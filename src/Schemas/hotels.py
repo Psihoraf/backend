@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, ConfigDict
 
-from src.Schemas.rooms import RoomsResponse
+from src.Schemas.rooms import Rooms
 
 
 class HotelModel(BaseModel):
@@ -13,7 +13,7 @@ class HotelAdd(HotelModel):
 class Hotel(HotelAdd):
     id:int
 class HotelResponse(HotelAdd):
-    rooms: list[RoomsResponse] = []
+    rooms: list[Rooms] = []
 
 class HotelPATCH(HotelModel):
     title: str | None = Field(None)

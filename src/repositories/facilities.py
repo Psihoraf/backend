@@ -3,12 +3,12 @@ from fastapi import HTTPException
 from sqlalchemy import select
 
 from src.Schemas.facilities import Facility, RoomFacility
-from src.models.facilities import FacilitiesORM, RoomsFacilitiesORM
+from src.models.facilities import FacilitiesOrm, RoomsFacilitiesOrm
 from src.repositories.base import BaseRepository
 
 
 class FacilitiesRepository(BaseRepository):
-    model = FacilitiesORM
+    model = FacilitiesOrm
     schema = Facility
 
     async def check_bulk(self, data:list[int]):
@@ -28,6 +28,6 @@ class FacilitiesRepository(BaseRepository):
             raise HTTPException(404, detail=f"удобства с id: {incorrect_ids} не найдены" )
 
 class RoomsFacilitiesRepository(BaseRepository):
-    model = RoomsFacilitiesORM
+    model = RoomsFacilitiesOrm
     schema = RoomFacility
 

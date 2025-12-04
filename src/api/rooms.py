@@ -1,26 +1,24 @@
 from datetime import date
 
 from fastapi import APIRouter, Query, Body, HTTPException
-from sqlalchemy import false
+
 
 from src.Schemas.facilities import RoomsFacilitiesAdd, Facility
 from src.api.dependencies import DBDep
-from src.models.hotels import HotelsOrm
-from src.Schemas.rooms import RoomsAdd, RoomsResponse,  RoomPatchRequest, RoomPatch
-from src.database import async_session_maker
 
-from src.repositories.rooms import RoomsRepository
-from src.utils.db_manager import DBManager
+from src.Schemas.rooms import RoomsAdd, Rooms,  RoomPatchRequest, RoomPatch
+
 
 router = APIRouter(prefix="/hotels", tags=["Номера"])
 
 
-@router.get("/rooms/all")
-async def get_all_rooms(db:DBDep):
+@router.get("/{hotel_id}/room")
+async def get_room(db:DBDep, hotel_id:int, room_id:int ):
 
-        rooms = await db.rooms.get_all()
+
+        rooms = await db.rooms.get_one_or_none(id=room_id, hotel_id = hotel_id)
         if not rooms:
-            return {"status": "Номера не найдены"}
+            return {"status": "Номер не найден"}
         return rooms
 
 @router.get("/{hotel_id}/rooms")
@@ -61,7 +59,6 @@ async def add_room(hotel_id: int, db:DBDep,data_room: RoomPatchRequest = Body(op
 
         }},
     })
-
               ):
 
     data_room_ = RoomsAdd(hotel_id=hotel_id, **data_room.model_dump())
