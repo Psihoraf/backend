@@ -18,3 +18,5 @@ class HotelResponse(HotelAdd):
 class HotelPATCH(HotelModel):
     title: str | None = Field(None)
     location: str | None = Field(None)
+
+

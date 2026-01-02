@@ -2,14 +2,15 @@ from fastapi import HTTPException
 
 from sqlalchemy import select
 
-from src.Schemas.facilities import Facility, RoomFacility
+from src.Schemas.facilities import RoomFacility
 from src.models.facilities import FacilitiesOrm, RoomsFacilitiesOrm
 from src.repositories.base import BaseRepository
+from src.repositories.mappers.mappers import FacilitiesDataMapper
 
 
 class FacilitiesRepository(BaseRepository):
     model = FacilitiesOrm
-    schema = Facility
+    mapper = FacilitiesDataMapper
 
     async def check_bulk(self, data:list[int]):
         current = (

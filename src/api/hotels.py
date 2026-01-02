@@ -1,16 +1,11 @@
 from datetime import date
-
+from fastapi_cache.decorator import cache
 from fastapi import Query, APIRouter, Body
 from src.Schemas.hotels import Hotel, HotelPATCH, HotelAdd
+from src.Schemas.images import HotelsImagesAdd
 from src.api.dependencies import  DBDep, PaginationDep
-from src.database import async_session_maker
-from sqlalchemy import insert, select
-
-from src.models.hotels import HotelsOrm
-from src.repositories.hotels import HotelsRepository
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
-
 
 def pagination(page, per_page, hotels_):
     start = (page - 1) * per_page
@@ -18,9 +13,8 @@ def pagination(page, per_page, hotels_):
     hotels_ = hotels_[start:end]
     return hotels_
 
-
-
 @router.get("")
+@cache(expire=10)
 async def get_hotels(
         pagination: PaginationDep,
         db: DBDep,
@@ -29,6 +23,7 @@ async def get_hotels(
         date_from: date = Query(example="2025-08-01"),
         date_to: date = Query(example="2025-08-10"),
 ):
+    print("иду в бд")
     per_page = pagination.per_page or 5
     #
     return await db.hotels.get_filtered_by_time(
