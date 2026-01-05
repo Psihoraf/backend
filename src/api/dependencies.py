@@ -4,8 +4,7 @@ from fastapi import Depends, Query, Request, HTTPException, UploadFile
 from pydantic import BaseModel
 from typing import Annotated
 
-
-
+from src.Schemas.images import ImageAddIntoBD
 from src.database import async_session_maker
 from src.services.auth import AuthService
 from src.utils.db_manager import DBManager
@@ -39,6 +38,19 @@ async def get_db():
         yield db
 
 DBDep = Annotated[DBManager, Depends(get_db)]
+
+def upload_files(image_name:str, file:UploadFile):
+    image_path = f"src/static/images/{file.filename}"
+
+    with open(image_path, "wb+") as new_file:
+        shutil.copyfileobj(file.file, new_file)
+
+    #resize_image.delay(image_path)
+
+    with open(image_path, "rb") as read_binary:
+        image_data = read_binary.read()
+
+    query = ImageAddIntoBD(image_name=image_name, image_bites=image_data)
 
 
 

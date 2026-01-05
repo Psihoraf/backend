@@ -35,7 +35,15 @@ class BaseRepository:
         if model is None:
             return None
         return RoomsWithRels.model_validate(model)
+    async def get_one_or_none_image(self, *filters, **filter_by ):
+        query = (select(self.model)
+                 .filter(*filters)
+                .filter_by(**filter_by))
 
+        result = await self.session.execute(query)
+        model = result.unique().scalars().one_or_none()
+
+        return self.mapper.map_to_domain_entity(model)
     async def add(self, data:BaseModel):
 
         add_hotel_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
@@ -114,11 +122,12 @@ class BaseRepository:
         return [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
 
 
-    async def check_existence(self, hotel_id):
-        query = select(exists().where(self.model.id == hotel_id))
+    async def check_existence(self, *filter, **filter_by):
+        query = select(self.model).filter(*filter).filter_by(**filter_by)
         if not query:
-            raise HTTPException(status_code=404, detail="Hotel not found")
-
+            return False
+            #raise HTTPException(status_code=404, detail="Not found")
+        return True
 
 
 

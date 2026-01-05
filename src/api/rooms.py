@@ -6,7 +6,7 @@ from fastapi import APIRouter, Query, Body, HTTPException
 from src.Schemas.facilities import RoomsFacilitiesAdd, Facility
 from src.api.dependencies import DBDep
 
-from src.Schemas.rooms import RoomsAdd, Rooms,  RoomPatchRequest, RoomPatch
+from src.Schemas.rooms import RoomsAdd,  RoomPatchRequest, RoomPatch
 
 
 router = APIRouter(prefix="/hotels", tags=["Номера"])

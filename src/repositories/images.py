@@ -10,3 +10,4 @@ class ImagesRepository(BaseRepository):
 class HotelsImagesRepository(BaseRepository):
     mapper = HotelsDataMapperWithImg
     model = HotelsImagesOrm
+

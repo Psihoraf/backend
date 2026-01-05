@@ -1,10 +1,9 @@
 from datetime import date
 
-from pydantic import BaseModel
-from sqlalchemy import select, insert
 
-from src.Schemas.hotels import Hotel
-from src.database import async_session_maker
+from sqlalchemy import select
+
+
 from src.models.hotels import HotelsOrm
 from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository

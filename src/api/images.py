@@ -2,8 +2,9 @@ import shutil
 
 
 from fastapi import APIRouter, UploadFile, Query
+from sqlalchemy import text
 
-from src.Schemas.images import  ImageAddIntoBD
+from src.Schemas.images import ImageAddIntoBD, HotelsImagesAdd
 from src.api.dependencies import DBDep
 from src.tasks.tasks import resize_image
 
@@ -12,7 +13,8 @@ router = APIRouter(prefix="/images",tags=["Изображения отелей"]
 @router.post("")
 async def upload_files(db: DBDep,
                        file: UploadFile,
-                       image_name:str|None = Query(None)
+                       image_name:str|None,
+                       hotel_id:int
                        ):
     image_path = f"src/static/images/{file.filename}"
 
@@ -22,10 +24,19 @@ async def upload_files(db: DBDep,
     resize_image.delay(image_path)
 
     with open(image_path, "rb") as read_binary:
-        image_data = read_binary.read()
+        image_bites = read_binary.read()
 
-    query = ImageAddIntoBD(image_name=image_name, image_bites=image_data)
-    await db.images.add(query)
+
+
+
+
+    data_image = ImageAddIntoBD(image_name=image_name, image_bites=image_bites)
+    image = await db.images.add(data_image)
+
+
+    hotel_image = HotelsImagesAdd(hotel_id=hotel_id, image_id=image.id)
+    await db.hotels_images.add(hotel_image)
+
 
     await db.commit()
     return {"Status": "OK"}

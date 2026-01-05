@@ -1,9 +1,12 @@
 from datetime import date
 from fastapi_cache.decorator import cache
 from fastapi import Query, APIRouter, Body
-from src.Schemas.hotels import Hotel, HotelPATCH, HotelAdd
-from src.Schemas.images import HotelsImagesAdd
-from src.api.dependencies import  DBDep, PaginationDep
+from fastapi import UploadFile
+
+from src.Schemas.hotels import HotelPATCH, HotelAdd, HotelAddWithImage
+
+
+from src.api.dependencies import DBDep, PaginationDep, upload_files
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
@@ -57,6 +60,7 @@ async def delete_hotel(
 
 @router.post("")
 async def create_hotel(db: DBDep,
+
         data_hotel: HotelAdd = Body(openapi_examples ={
             "1":{"summary": "Сочи", "value":{
                 "title":"Delux",
@@ -71,12 +75,13 @@ async def create_hotel(db: DBDep,
                 "location":"Екатеринбург, улица золотого сечения 3",
             }}
         })
+
 ):
 
 
 
-
     hotel = await db.hotels.add(data_hotel)
+
 
     await db.commit()
     return {"Status":"OK", "data": hotel}

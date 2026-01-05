@@ -10,6 +10,12 @@ class HotelAdd(HotelModel):
     title: str
     location: str
 
+
+class HotelAddWithImage(HotelModel):
+    title: str
+    location: str
+    image_name: str  | None = Field(None)
+
 class Hotel(HotelAdd):
     id:int
 class HotelResponse(HotelAdd):
@@ -20,3 +26,6 @@ class HotelPATCH(HotelModel):
     location: str | None = Field(None)
 
 
+class ImageAddIntoBD(BaseModel):
+    image_name: str
+    image_bites: bytes
