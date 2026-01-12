@@ -1,9 +1,9 @@
-from http.client import HTTPException
-from fastapi import APIRouter, HTTPException, Response, Request
 
-from sqlalchemy.exc import IntegrityError
+from fastapi import APIRouter, HTTPException, Response
 
-from src.Schemas.users import UserRequestAdd, UserAdd, User
+
+
+from src.Schemas.users import UserRequestAdd, UserAdd
 from src.api.dependencies import UserIdDep, DBDep
 
 from src.services.auth import AuthService
@@ -16,17 +16,16 @@ router = APIRouter(prefix="/auth", tags=["Авторизация и аутент
 @router.post("/register")
 async def register_user(data: UserRequestAdd, db:DBDep):
 
-    hashed_password = AuthService().hash_password(data.password)
-    new_user_data = UserAdd(email= data.email, hashed_password = hashed_password)
-
-
     try:
+        hashed_password = AuthService().hash_password(data.password)
+        new_user_data = UserAdd(email= data.email, hashed_password = hashed_password)
         await db.users.add(new_user_data)
         await db.commit()
-        return {"Status": "OK"}
-    except(IntegrityError) :
-        await db.rollback()
-        return {"Status": "error", "message": "Such email already exists"}
+    except:
+        raise HTTPException(status_code=400)
+    return {"Status": "OK"}
+
+
 
 
 

@@ -1,9 +1,7 @@
-from fastapi import HTTPException
-from sqlalchemy import exists
 
 from pydantic import BaseModel
 from sqlalchemy import select, insert, delete, update
-from sqlalchemy.orm import selectinload, joinedload
+from sqlalchemy.orm import joinedload
 
 from src.Schemas.rooms import RoomsWithRels
 from src.repositories.mappers.base import DataMapper
@@ -24,6 +22,16 @@ class BaseRepository:
 
     async def get_one_or_none(self, *filters, **filter_by ):
         query = (select(self.model)
+                 .filter(*filters)
+                .filter_by(**filter_by))
+
+        result = await self.session.execute(query)
+        model = result.scalars().one_or_none()
+
+        return self.mapper.map_to_domain_entity(model)
+
+    async def get_one_or_none_with_facilities(self, *filters, **filter_by ):
+        query = (select(self.model)
                 .options(joinedload(self.model.facilities))
                  .filter(*filters)
                 .filter_by(**filter_by))
@@ -35,6 +43,7 @@ class BaseRepository:
         if model is None:
             return None
         return RoomsWithRels.model_validate(model)
+
     async def get_one_or_none_image(self, *filters, **filter_by ):
         query = (select(self.model)
                  .filter(*filters)
@@ -108,10 +117,9 @@ class BaseRepository:
             .values(**data.model_dump(exclude_unset=isPatch))
             .returning(self.model)
     )
-        await self.session.execute(query)
-
-
-        await self.session.execute(query)
+        result = await self.session.execute(query)
+        model = result.scalars().one_or_none()
+        return self.mapper.map_to_domain_entity(model)
     async def get_filtered(self, *filter, **filter_by):
         query = (
             select(self.model)

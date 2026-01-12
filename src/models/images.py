@@ -1,6 +1,6 @@
-from sqlalchemy import ForeignKey, LargeBinary
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from starlette.datastructures import UploadFile
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column
+
 
 from src.database import Base
 

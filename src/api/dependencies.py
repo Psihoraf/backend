@@ -50,7 +50,7 @@ def upload_files(image_name:str, file:UploadFile):
     with open(image_path, "rb") as read_binary:
         image_data = read_binary.read()
 
-    query = ImageAddIntoBD(image_name=image_name, image_bites=image_data)
+    ImageAddIntoBD(image_name=image_name, image_bites=image_data)
 
 
 

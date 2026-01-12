@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
-from fastapi_cache.decorator import cache
+from fastapi_cache.decorator import cache #noqa F403
 
 from fastapi import FastAPI
 from fastapi.openapi.docs import get_swagger_ui_html

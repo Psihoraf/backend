@@ -1,8 +1,8 @@
 import shutil
 
 
-from fastapi import APIRouter, UploadFile, Query
-from sqlalchemy import text
+from fastapi import APIRouter, UploadFile
+
 
 from src.Schemas.images import ImageAddIntoBD, HotelsImagesAdd
 from src.api.dependencies import DBDep

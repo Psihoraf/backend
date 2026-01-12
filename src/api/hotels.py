@@ -1,12 +1,12 @@
 from datetime import date
 from fastapi_cache.decorator import cache
 from fastapi import Query, APIRouter, Body
-from fastapi import UploadFile
-
-from src.Schemas.hotels import HotelPATCH, HotelAdd, HotelAddWithImage
 
 
-from src.api.dependencies import DBDep, PaginationDep, upload_files
+from src.Schemas.hotels import HotelPATCH, HotelAdd
+
+
+from src.api.dependencies import DBDep, PaginationDep
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
