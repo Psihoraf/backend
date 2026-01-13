@@ -3,7 +3,6 @@ from datetime import date
 
 from sqlalchemy import select
 
-
 from src.models.hotels import HotelsOrm
 from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository
@@ -36,6 +35,7 @@ class HotelsRepository(BaseRepository):
             query = query.filter(HotelsOrm.title.ilike(f"%{title}%"))
 
         query = query.limit(limit).offset(offset)
+
         result = await self.session.execute(query)
 
         return [self.mapper.map_to_domain_entity(hotel) for hotel in result.scalars().all()]

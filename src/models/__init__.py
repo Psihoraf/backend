@@ -6,10 +6,11 @@ from src.models.facilities import FacilitiesOrm
 from src.models.images import ImagesOrm
 
 
-__all__ = [HotelsOrm,
-    RoomsOrm,
-    UsersOrm,
-    BookingsOrm,
-    FacilitiesOrm,
-    ImagesOrm,
-    ]
+__all__ = [
+    "HotelsOrm",
+    "RoomsOrm",
+    "UsersOrm",
+    "BookingsOrm",
+    "FacilitiesOrm",
+    "ImagesOrm"
+]

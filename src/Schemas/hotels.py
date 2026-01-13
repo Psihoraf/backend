@@ -6,7 +6,7 @@ from src.Schemas.rooms import Rooms
 class HotelModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-class HotelAdd(HotelModel):
+class HotelAdd(BaseModel):
     title: str
     location: str
 

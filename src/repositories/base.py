@@ -1,8 +1,11 @@
+from asyncpg import UniqueViolationError
 
 from pydantic import BaseModel
 from sqlalchemy import select, insert, delete, update
+from sqlalchemy.exc import NoResultFound, IntegrityError
 from sqlalchemy.orm import joinedload
 
+from src.exceptions import ObjectNotFoundException, ObjectAlreadyExistsException
 from src.Schemas.rooms import RoomsWithRels
 from src.repositories.mappers.base import DataMapper
 
@@ -27,6 +30,18 @@ class BaseRepository:
 
         result = await self.session.execute(query)
         model = result.scalars().one_or_none()
+
+        return self.mapper.map_to_domain_entity(model)
+
+    async def get_one(self, *filters, **filter_by ):
+        query = (select(self.model)
+                 .filter(*filters)
+                .filter_by(**filter_by))
+        result = await self.session.execute(query)
+        try:
+            model = result.scalar_one()
+        except NoResultFound:
+            raise ObjectNotFoundException
 
         return self.mapper.map_to_domain_entity(model)
 
@@ -57,7 +72,15 @@ class BaseRepository:
 
         add_hotel_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
         #print(add_hotel_stmt.compile(compile_kwargs={"literal_binds": True}))
-        result = await self.session.execute(add_hotel_stmt)
+        try:
+            result = await self.session.execute(add_hotel_stmt)
+        except IntegrityError as ex:
+            print(f"{type(ex.orig.__cause__)=}")
+            if isinstance(ex.orig.__cause__, UniqueViolationError):
+                raise ObjectAlreadyExistsException from ex
+            else:
+                raise ex
+
         model = result.scalars().one()
         return self.mapper.map_to_domain_entity(model)
 
@@ -116,10 +139,12 @@ class BaseRepository:
             .filter_by(**filter_by)
             .values(**data.model_dump(exclude_unset=isPatch))
             .returning(self.model)
-    )
+        )
         result = await self.session.execute(query)
         model = result.scalars().one_or_none()
+
         return self.mapper.map_to_domain_entity(model)
+
     async def get_filtered(self, *filter, **filter_by):
         query = (
             select(self.model)
