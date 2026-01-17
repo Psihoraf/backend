@@ -9,7 +9,9 @@ from src.Schemas.facilities import RoomsFacilitiesAdd
 from src.api.dependencies import DBDep
 
 from src.Schemas.rooms import RoomsAdd,  RoomPatchRequest, RoomPatch
-
+from src.services.facilities import FacilitiesService
+from src.services.hotels import HotelsService
+from src.services.rooms import RoomsService
 
 router = APIRouter(prefix="/hotels", tags=["Номера"])
 
@@ -17,12 +19,12 @@ router = APIRouter(prefix="/hotels", tags=["Номера"])
 @router.get("/{hotel_id}/room")
 async def get_room(db:DBDep, hotel_id:int, room_id:int ):
 
-
-        room = await db.rooms.get_one(id=room_id, hotel_id = hotel_id)
-
-        if not room:
+        try:
+            room = await RoomsService(db).get_room(hotel_id, room_id)
+            return room
+        except:
             raise RoomExistsException
-        return room
+
 
 @router.get("/{hotel_id}/rooms")
 async def get_rooms(
@@ -31,19 +33,16 @@ async def get_rooms(
         date_from: date = Query(example="2024-08-01"),
         date_to: date = Query(example="2024-08-10"),
 ):
-    check_date_to_after_date_from(date_from, date_to)
-    return await db.rooms.get_filtered_by_time(hotel_id=hotel_id, date_from=date_from, date_to=date_to)
+    return await RoomsService(db).get_filtered_by_time(hotel_id=hotel_id, date_from=date_from, date_to=date_to)
 
 @router.post("/rooms")
 async def add_room(hotel_id: int, db:DBDep,data_room: RoomPatchRequest = Body(openapi_examples=
     {
         "1": {"summary": "Крутой", "value": {
-
             "title": "ВИП1",
             "description": "Самый лучший номер",
             "price":2000,
             "quantity":12,
-
         }},
         "2": {"summary": "Нормальный", "value": {
 
@@ -51,7 +50,6 @@ async def add_room(hotel_id: int, db:DBDep,data_room: RoomPatchRequest = Body(op
             "description": "Обычный номер",
             "price":1000,
             "quantity":30,
-
         }},
         "3": {"summary": "Дешевый", "value": {
 
@@ -59,38 +57,30 @@ async def add_room(hotel_id: int, db:DBDep,data_room: RoomPatchRequest = Body(op
             "description": "Самый дешевый номер",
             "price":500,
             "quantity":23,
-
-
         }},
     })
               ):
     try:
-        db.hotels.get_one(id=hotel_id)
+        await HotelsService(db).get_hotel(hotel_id)
     except ObjectNotFoundException:
         raise HotelExistsException
-    data_room_ = RoomsAdd(hotel_id=hotel_id, **data_room.model_dump())
 
-    room = await db.rooms.add(data_room_)
+    room = await RoomsService(db).add_room(hotel_id,data_room)
 
-    rooms_facilities_data = [RoomsFacilitiesAdd(room_id=room.id, facility_id=f_id) for f_id in data_room.facilities_ids]
-    await db.rooms_facilities.add_bulk(rooms_facilities_data)
-    await db.commit()
-
-    return {"Status":"OK"}
+    return {"Status":"OK", "room":room}
 
 @router.delete("/rooms/{room_id}")
 async def delete_room(hotel_id:int, room_id:int, db:DBDep):
     try:
-        await db.hotels.get_one(id=hotel_id)
+        await HotelsService(db).get_hotel(hotel_id)
     except ObjectNotFoundException:
         raise HotelExistsException
     try:
-        await db.rooms.get_one(id=room_id)
+        await RoomsService(db).get_room(hotel_id, room_id)
     except ObjectNotFoundException:
         raise RoomExistsException
 
-    await db.rooms.delete(id = room_id,hotel_id=hotel_id )
-    await db.commit()
+    await RoomsService(db).delete_room(hotel_id, room_id )
     return {"Status": "OK"}
 
 @router.patch("/{hotel_id}/rooms/{room_id}")
@@ -110,28 +100,17 @@ async def patch_room(
             }},
         })
 ):
-
     try:
-        await db.hotels.get_one(id=hotel_id)
+        await HotelsService(db).get_hotel(hotel_id)
     except ObjectNotFoundException:
         raise HotelExistsException
-
     try:
-        await db.rooms.get_one(id=room_id)
+        await RoomsService(db).get_room(hotel_id, room_id)
     except ObjectNotFoundException:
         raise RoomExistsException
 
-    _room_data_dict = data_room.model_dump(exclude_unset=True)
-    _room_data = RoomPatch(hotel_id=hotel_id, **_room_data_dict)
 
-    await db.rooms.edit(_room_data, True, id=room_id, hotel_id = hotel_id)
-
-    if "facilities_ids" in _room_data_dict:
-        facilities = [f_id for f_id in data_room.facilities_ids]
-        await db.facilities.check_bulk(facilities)
-        await db.rooms_facilities.edit_bulk(facilities, room_id)
-
-    await db.commit()
+    await RoomsService(db).edit_room_partially(data_room, room_id,hotel_id, exclude_unset = True)
     return {"Status": "OK"}
 
 @router.put("/{hotel_id}/rooms/{room_id}")
@@ -152,24 +131,17 @@ async def put_room (db:DBDep,
         })
 ):
     try:
-        await db.hotels.get_one(id=hotel_id)
+        await HotelsService(db).get_hotel(hotel_id)
     except ObjectNotFoundException:
         raise HotelExistsException
     try:
-        await db.rooms.get_one(id=room_id)
+        await RoomsService(db).get_room(hotel_id, room_id)
     except ObjectNotFoundException:
         raise RoomExistsException
 
-    _room_data_dict = data_room.model_dump()
-    _room_data = RoomsAdd(hotel_id=hotel_id, **_room_data_dict)
+    await RoomsService(db).edit_room(data_room, room_id, hotel_id)
 
-    await db.rooms.edit(_room_data, False, id=room_id)
 
-    facilities = [f_id for f_id in data_room.facilities_ids]
 
-    await db.facilities.check_bulk(facilities)
-
-    await db.rooms_facilities.edit_bulk(facilities, room_id)
-    await db.commit()
     return {"Status": "OK"}
 

@@ -7,6 +7,7 @@ from src.Schemas.hotels import HotelPATCH, HotelAdd
 
 
 from src.api.dependencies import DBDep, PaginationDep
+from src.services.hotels import HotelsService
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
@@ -26,18 +27,12 @@ async def get_hotels(
         date_from: date = Query(example="2025-08-01"),
         date_to: date = Query(example="2025-08-10"),
 ):
-    print("иду в бд")
-    per_page = pagination.per_page or 5
-    check_date_to_after_date_from(date_from, date_to)
-
-
-    return await db.hotels.get_filtered_by_time(
-        date_from=date_from,
-        date_to=date_to,
-        location=location,
-        title=title,
-        limit=per_page,
-        offset=per_page * (pagination.page - 1)
+    return await HotelsService(db).get_filtered_by_time(
+        pagination,
+        location,
+        title,
+        date_from,
+        date_to,
     )
 
 
@@ -45,7 +40,7 @@ async def get_hotels(
 async def get_hotel(hotel_id: int, db: DBDep):
 
     try:
-        hotel = await db.hotels.get_one(id = hotel_id)
+        hotel = await HotelsService(db).get_hotel(hotel_id)
     except ObjectNotFoundException:
         raise HotelExistsException
     return hotel
@@ -57,11 +52,7 @@ async def delete_hotel(
         db: DBDep
 ):
 
-    if not await db.hotels.check_existence(hotel_id):
-        return {"Status": "Error", "Message": "Hotel not found "}
-
-    await db.hotels.delete(id = hotel_id)
-    await db.commit()
+    await HotelsService(db).delete_hotel(hotel_id)
     return {"Status":"OK"}
 
 @router.post("")
@@ -84,12 +75,7 @@ async def create_hotel(db: DBDep,
 
 ):
 
-
-
-    hotel = await db.hotels.add(data_hotel)
-
-
-    await db.commit()
+    hotel = await HotelsService(db).add_hotel(data_hotel)
     return {"Status":"OK", "data": hotel}
 
 @router.patch("/{hotel_id}")
@@ -98,8 +84,7 @@ async def patch_hotel(db: DBDep,
         hotel_data: HotelPATCH
 ):
 
-    await db.hotels.edit(hotel_data, True, id = hotel_id )
-    await db.commit()
+    await HotelsService(db).edit_hotel_partially(hotel_data,hotel_id, exclude_unset=True)
     return {"Status": "OK"}
 
 
@@ -111,6 +96,5 @@ async def put_hotel(db: DBDep,
 
 ):
 
-    await db.hotels.edit(data_hotel, False, id = hotel_id)
-    await db.commit()
+    await HotelsService(db).edit_hotel(data_hotel, hotel_id)
     return {"Status" : "OK"}

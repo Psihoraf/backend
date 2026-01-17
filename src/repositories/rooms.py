@@ -1,9 +1,10 @@
 from datetime import date
 
 from sqlalchemy import select
+from sqlalchemy.exc import NoResultFound
 
-
-
+from src.Schemas.rooms import RoomsWithRels
+from src.exceptions import RoomExistsException
 from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository
 from src.repositories.mappers.mappers import RoomDataMapper, RoomDataMapperWithRels
@@ -29,3 +30,4 @@ class RoomsRepository(BaseRepository):
         )
         result = await self.session.execute(query)
         return [RoomDataMapperWithRels.map_to_domain_entity(model) for model in result.unique().scalars().all()]
+
