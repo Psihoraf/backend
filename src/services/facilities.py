@@ -5,7 +5,7 @@ from src.services.base import BaseService
 
 class FacilitiesService(BaseService):
     async def get_facilities(self):
-        return self.db.facilities.get_all()
+        return await self.db.facilities.get_all()
 
     async def add_facility(self, data_facility:FacilityAdd):
         await self.db.facilities.add(data_facility)

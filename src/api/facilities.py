@@ -13,7 +13,7 @@ async def get_facilities(
         db:DBDep
 ):
     print ("иду в бд")
-    return  await FacilitiesService(db).get_facilities()
+    return await FacilitiesService(db).get_facilities()
 
 @router.post("")
 async def add_facility(
