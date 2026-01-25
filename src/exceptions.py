@@ -28,7 +28,7 @@ class DateFromSoonerThenDateToException(MegaBroniratorExceptions):
 
 
 class MegaBroniratorHTTPExceptions(HTTPException):
-    status_code = 500
+    status_code = 404
     detail = None
     def __init__(self, *args, **kwargs):
         super().__init__(status_code=self.status_code, detail=self.detail)
@@ -42,5 +42,5 @@ class RoomExistsException(MegaBroniratorHTTPExceptions):
     detail = "Такой номер не существует"
 
 class UserWithSuchEmailAlreadyExists(MegaBroniratorHTTPExceptions):
-    status_code = 400
-    detail = "Пользователь уже существует "
+    status_code = 404
+    detail = "Пользователь уже существует! "

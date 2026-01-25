@@ -1,7 +1,7 @@
 
 from fastapi import APIRouter, HTTPException, Response
 
-from src.exceptions import ObjectNotFoundException, UserWithSuchEmailAlreadyExists
+from src.exceptions import UserWithSuchEmailAlreadyExists, ObjectAlreadyExistsException
 from src.Schemas.users import UserRequestAdd, UserAdd
 from src.api.dependencies import UserIdDep, DBDep
 
@@ -21,7 +21,7 @@ async def register_user(data: UserRequestAdd, db:DBDep):
     try:
         await db.users.add(new_user_data)
         await db.commit()
-    except ObjectNotFoundException:
+    except ObjectAlreadyExistsException:
         raise UserWithSuchEmailAlreadyExists
 
 

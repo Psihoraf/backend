@@ -1,3 +1,5 @@
+import logging
+
 from asyncpg import UniqueViolationError
 
 from pydantic import BaseModel
@@ -78,19 +80,24 @@ class BaseRepository:
         return self.mapper.map_to_domain_entity(model)
     async def add(self, data:BaseModel):
 
-        add_hotel_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
+
         #print(add_hotel_stmt.compile(compile_kwargs={"literal_binds": True}))
         try:
+            add_hotel_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
             result = await self.session.execute(add_hotel_stmt)
+            model = result.scalars().one()
+            return self.mapper.map_to_domain_entity(model)
         except IntegrityError as ex:
             print(f"{type(ex.orig.__cause__)=}")
             if isinstance(ex.orig.__cause__, UniqueViolationError):
                 raise ObjectAlreadyExistsException from ex
             else:
+                logging.exception(
+                    f"Незнакомая ошибка: не удалось добавить данные в БД, входные данные={data}"
+                )
                 raise ex
 
-        model = result.scalars().one()
-        return self.mapper.map_to_domain_entity(model)
+
 
     async def add_image(self, data:BaseModel):
         add_img_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
