@@ -56,7 +56,6 @@ class BaseRepository:
             raise ObjectNotFoundException
         return RoomsWithRels.model_validate(model)
 
-
     async def get_one_or_none_with_facilities(self, *filters, **filter_by ):
         query = (select(self.model)
                 .options(joinedload(self.model.facilities))
@@ -76,11 +75,8 @@ class BaseRepository:
 
         result = await self.session.execute(query)
         model = result.unique().scalars().one_or_none()
-
         return self.mapper.map_to_domain_entity(model)
     async def add(self, data:BaseModel):
-
-
         #print(add_hotel_stmt.compile(compile_kwargs={"literal_binds": True}))
         try:
             add_hotel_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
