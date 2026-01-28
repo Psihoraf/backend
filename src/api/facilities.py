@@ -2,6 +2,8 @@ from fastapi import APIRouter, Body
 
 from src.Schemas.facilities import FacilityAdd
 from src.api.dependencies import DBDep
+from src.exceptions import ObjectNotFoundException, FacilitiesNotFoundHTTPEException, ObjectAlreadyExistsException, \
+    FacilitiesAlreadyExistsHTTPEException
 from src.services.facilities import FacilitiesService
 from src.tasks.tasks import task_test
 router = APIRouter(prefix="/facilities", tags=["Удобства"])
@@ -13,7 +15,10 @@ async def get_facilities(
         db:DBDep
 ):
     print ("иду в бд")
-    return await FacilitiesService(db).get_facilities()
+    try:
+        return await FacilitiesService(db).get_facilities()
+    except ObjectNotFoundException:
+        raise FacilitiesNotFoundHTTPEException
 
 @router.post("")
 async def add_facility(
@@ -31,8 +36,12 @@ async def add_facility(
         })
 ):
     task_test.delay()
-    facility = await FacilitiesService(db).add_facility(data_facility)
-
-    return {"Status": "OK", "data": facility }
+    try:
+        await FacilitiesService(db).add_facility(data_facility)
+    except ObjectAlreadyExistsException:
+        raise FacilitiesAlreadyExistsHTTPEException(
+            detail = f"Удобство {data_facility.title} уже существует"
+        )
+    return {"Добавлено удобство": data_facility.title}
 
 

@@ -31,7 +31,7 @@ class ObjectAlreadyExistsException(MegaBroniratorExceptions):
     detail = "нет "
 
 
-class AllRoomsAlreadyHaveBooked(MegaBroniratorExceptions):
+class AllRoomsAlreadyHaveBookedException(MegaBroniratorExceptions):
     detail = "Нет свободных номеров"
 
 
@@ -95,3 +95,18 @@ class UserAlreadyLogOutHTTPException(MegaBroniratorHTTPExceptions):
     status_code = 400
     detail = "Вы уже вышли из аккаунта"
 
+class AllRoomsAlreadyHaveBookedHTTPException(MegaBroniratorHTTPExceptions):
+    status_code = 409
+    detail = "Нет свободных номеров"
+
+class BookingNotFoundHTTPEException(MegaBroniratorHTTPExceptions):
+    status_code = 404
+    detail = "Бронирования не найдены, скорее всего их нет"
+
+class FacilitiesNotFoundHTTPEException(MegaBroniratorHTTPExceptions):
+    status_code = 404
+    detail = "Удобства не найдены, скорее всего их нет"
+
+class FacilitiesAlreadyExistsHTTPEException(MegaBroniratorHTTPExceptions):
+    status_code = 409
+    detail = "Удобство уже существует"

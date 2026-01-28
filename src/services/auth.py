@@ -47,6 +47,7 @@ class AuthService(BaseService):
         await self.db.commit()
 
     async def login_user(self, data: UserRequestAdd):
+
         try:
             user = await self.db.users.get_user_with_hashed_password(email=data.email)
         except ObjectNotFoundException:

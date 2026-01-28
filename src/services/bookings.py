@@ -1,13 +1,15 @@
 from src.Schemas.bookings import BookingAdd, BookingAddRequest
 from src.api.dependencies import UserIdDep
-from src.exceptions import ObjectNotFoundException, RoomExistsException
+from src.exceptions import ObjectNotFoundException, RoomExistsException, BookingNotFoundHTTPEException
 from src.services.base import BaseService
 
 
 class BookingsService(BaseService):
 
     async def get_bookings(self):
+
         return await self.db.bookings.get_all()
+
 
     async def get_my_bookings(self, user_id:int):
         return await self.db.bookings.get_filtered(user_id=user_id)

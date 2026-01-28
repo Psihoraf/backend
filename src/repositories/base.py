@@ -21,9 +21,14 @@ class BaseRepository:
         self.session = session
 
     async def get_all(self, *args, **kwargs) :
+
         query = select(self.model)
         result = await self.session.execute(query)
-        return [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
+        model = [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
+        if not model :
+            raise ObjectNotFoundException
+        return model
+
 
     async def get_one_or_none(self, *filters, **filter_by ):
         query = (select(self.model)
@@ -140,8 +145,9 @@ class BaseRepository:
 
     async def delete(self, **filter_by):
         query = delete(self.model).filter_by(**filter_by)
-        await self.session.execute(query)
-
+        result = await self.session.execute(query)
+        if result.rowcount == 0:
+            raise ObjectNotFoundException
 
     async def edit(self, data: BaseModel, isPatch: bool = False, **filter_by):
 
@@ -163,8 +169,10 @@ class BaseRepository:
             .filter_by(**filter_by)
         )
         result = await self.session.execute(query)
-        return [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
-
+        model = [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
+        if not model:
+            raise ObjectNotFoundException
+        return model
 
     async def check_existence(self, *filter, **filter_by):
         query = select(self.model).filter(*filter).filter_by(**filter_by)

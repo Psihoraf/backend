@@ -4,8 +4,8 @@ from typing import Sequence
 from sqlalchemy import  select
 
 from src.Schemas.hotels import HotelAdd
-from src.exceptions import AllRoomsAlreadyHaveBooked
-from src.Schemas.bookings import BookingAdd
+from src.exceptions import AllRoomsAlreadyHaveBookedException
+
 
 from src.models.bookings import BookingsOrm
 from src.repositories.base import BaseRepository
@@ -39,5 +39,4 @@ class BookingsRepository(BaseRepository):
         if data.room_id in rooms_ids_to_book:
             new_booking = await self.add(data)
             return new_booking
-
-        raise AllRoomsAlreadyHaveBooked
+        raise AllRoomsAlreadyHaveBookedException

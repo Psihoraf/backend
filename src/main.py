@@ -4,12 +4,15 @@ from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from fastapi_cache.decorator import cache #noqa F403
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.openapi.docs import get_swagger_ui_html
 import uvicorn
 
 import sys
 from pathlib import Path
+
+from jwt import ExpiredSignatureError
+from starlette.responses import JSONResponse
 
 sys.path.append(str(Path(__file__).parent.parent))
 
@@ -51,6 +54,13 @@ async def custom_swagger_ui_html():
         swagger_css_url="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css",
     )
 
-
+@app.exception_handler(ExpiredSignatureError)
+async def expired_token_exception_handler(request: Request, exc: ExpiredSignatureError):
+    return JSONResponse(
+        status_code=401,
+        content={
+            "detail": "Время действия токена истекло, зарегистрируйтесь снова",
+        }
+    )
 if __name__ == "__main__":
     uvicorn.run("main:app",host="0.0.0.0", reload=True)
