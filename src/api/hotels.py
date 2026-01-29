@@ -2,7 +2,8 @@ from datetime import date
 from fastapi_cache.decorator import cache
 from fastapi import Query, APIRouter, Body
 
-from src.exceptions import HotelExistsException, ObjectNotFoundException, check_date_to_after_date_from
+from src.exceptions import ObjectNotFoundException, check_date_to_after_date_from, HotelExistsExceptionHTTPExceptions, \
+    NothingToUpdateExceptionHTTPException
 from src.Schemas.hotels import HotelPATCH, HotelAdd
 
 
@@ -42,7 +43,7 @@ async def get_hotel(hotel_id: int, db: DBDep):
     try:
         hotel = await HotelsService(db).get_hotel(hotel_id)
     except ObjectNotFoundException:
-        raise HotelExistsException
+        raise HotelExistsExceptionHTTPExceptions
     return hotel
 
 
@@ -51,7 +52,6 @@ async def delete_hotel(
         hotel_id:int,
         db: DBDep
 ):
-
     await HotelsService(db).delete_hotel(hotel_id)
     return {"Status":"OK"}
 
@@ -74,20 +74,21 @@ async def create_hotel(db: DBDep,
         })
 
 ):
-
     hotel = await HotelsService(db).add_hotel(data_hotel)
-    return {"Status":"OK", "data": hotel}
+    return {"data": hotel}
 
 @router.patch("/{hotel_id}")
 async def patch_hotel(db: DBDep,
         hotel_id:int,
         hotel_data: HotelPATCH
 ):
+    update_dict = hotel_data.model_dump(exclude_unset=True, exclude_none=True)
+    if not update_dict:
+        # Ничего не передали для обновления
+        raise NothingToUpdateExceptionHTTPException
 
     await HotelsService(db).edit_hotel_partially(hotel_data,hotel_id, exclude_unset=True)
     return {"Status": "OK"}
-
-
 
 @router.put("/{hotel_id}")
 async def put_hotel(db: DBDep,

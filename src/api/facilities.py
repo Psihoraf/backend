@@ -40,7 +40,7 @@ async def add_facility(
         await FacilitiesService(db).add_facility(data_facility)
     except ObjectAlreadyExistsException:
         raise FacilitiesAlreadyExistsHTTPEException(
-            detail = f"Удобство {data_facility.title} уже существует"
+            detail = f"Удобство <{data_facility.title}> уже существует"
         )
     return {"Добавлено удобство": data_facility.title}
 

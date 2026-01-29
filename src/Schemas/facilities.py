@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class FacilityModel(BaseModel):
@@ -6,7 +6,7 @@ class FacilityModel(BaseModel):
 
 
 class FacilityAdd(FacilityModel):
-    title: str
+    title: str = Field(min_length=1)
 
 class Facility(FacilityAdd):
     id:int

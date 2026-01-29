@@ -34,14 +34,19 @@ class ObjectAlreadyExistsException(MegaBroniratorExceptions):
 class AllRoomsAlreadyHaveBookedException(MegaBroniratorExceptions):
     detail = "Нет свободных номеров"
 
+class FacilitiesNotFoundExceptionException(MegaBroniratorExceptions):
+    status_code = 404
+    detail = "Одно или несколько удобств не найдены"
+
 
 class DateFromSoonerThenDateToException(MegaBroniratorExceptions):
     detail = "Дата выезда позже, чем дата заезда"
 
-
+class HotelAlreadyExistsException(MegaBroniratorExceptions):
+    detail = "Отель с таким и адресом уже существует"
 def check_date_to_after_date_from(date_from: date, date_to: date) -> None:
     if date_to <= date_from:
-        raise HTTPException(status_code=422, detail="Дата заезда не может быть позже даты выезда")
+        raise HTTPException(status_code=422, detail="Дата заезда не может быть позже даты выезда или равна ей")
 
 
 pattern = r'^(?=.*[a-zа-я])(?=.*[A-ZА-Я])(?=.*\d)(?=.*[@$!%*#?&_])[A-Za-zА-Яа-я\d@$!%*#?&_]{8,}$'
@@ -57,18 +62,33 @@ def check_password_validate(password:str):
 class MegaBroniratorHTTPExceptions(HTTPException):
     status_code = 404
     detail = None
-    def __init__(self, *args, **kwargs):
-        super().__init__(status_code=self.status_code, detail=self.detail)
+    def __init__(self, detail: str = None, *args, **kwargs):
+        detail = detail or self.detail
+        super().__init__(status_code=self.status_code, detail=detail)
 
 
-class HotelExistsException(MegaBroniratorHTTPExceptions):
+class HotelExistsExceptionHTTPExceptions(MegaBroniratorHTTPExceptions):
     status_code = 404
     detail = "Такой отель не существует"
 
+class HotelAlreadyExistsExceptionHTTPExceptions(MegaBroniratorHTTPExceptions):
+    status_code = 409
+    detail = "Отель с таким адресом уже существует"
 
-class RoomExistsException(MegaBroniratorHTTPExceptions):
+class FacilitiesNotFoundExceptionHTTPException(MegaBroniratorHTTPExceptions):
+    status_code = 404
+    detail = "Одно или несколько удобств не найдены"
+
+
+
+
+class RoomExistsExceptionHTTPExceptions(MegaBroniratorHTTPExceptions):
     status_code = 404
     detail = "Такой номер не существует"
+
+class RoomsExistsExceptionHTTPExceptions(MegaBroniratorHTTPExceptions):
+    status_code = 404
+    detail = "Номера не найдены"
 
 
 class UserWithSuchEmailAlreadyExistsHTTPExceptions(MegaBroniratorHTTPExceptions):
@@ -110,3 +130,8 @@ class FacilitiesNotFoundHTTPEException(MegaBroniratorHTTPExceptions):
 class FacilitiesAlreadyExistsHTTPEException(MegaBroniratorHTTPExceptions):
     status_code = 409
     detail = "Удобство уже существует"
+
+class NothingToUpdateExceptionHTTPException(MegaBroniratorHTTPExceptions):
+    status_code = 422
+    detail = "Не передано данных для обновления"
+

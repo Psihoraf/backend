@@ -3,6 +3,7 @@ from fastapi import HTTPException
 from sqlalchemy import select
 
 from src.Schemas.facilities import RoomFacility
+from src.exceptions import FacilitiesNotFoundExceptionException
 from src.models.facilities import FacilitiesOrm, RoomsFacilitiesOrm
 from src.repositories.base import BaseRepository
 from src.repositories.mappers.mappers import FacilitiesDataMapper
@@ -26,7 +27,7 @@ class FacilitiesRepository(BaseRepository):
         incorrect_ids = new_ids-current_ids
 
         if incorrect_ids:
-            raise HTTPException(404, detail=f"удобства с id: {incorrect_ids} не найдены" )
+            raise FacilitiesNotFoundExceptionException
 
 class RoomsFacilitiesRepository(BaseRepository):
     model = RoomsFacilitiesOrm

@@ -8,8 +8,8 @@ from src.database import Base
 class ImagesOrm(Base):
     __tablename__ = "images"
     id: Mapped[int] = mapped_column(primary_key=True)
-    image_name: Mapped[str]
-    image_bites: Mapped[bytes]
+    image_name: Mapped[str] = mapped_column(nullable=False)
+    image_bites: Mapped[bytes] = mapped_column(nullable=False)
 
 
 class HotelsImagesOrm(Base):

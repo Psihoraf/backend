@@ -1,6 +1,6 @@
 from src.Schemas.bookings import BookingAdd, BookingAddRequest
 from src.api.dependencies import UserIdDep
-from src.exceptions import ObjectNotFoundException, RoomExistsException, BookingNotFoundHTTPEException
+from src.exceptions import ObjectNotFoundException, BookingNotFoundHTTPEException, RoomExistsExceptionHTTPExceptions
 from src.services.base import BaseService
 
 
@@ -19,7 +19,7 @@ class BookingsService(BaseService):
         try:
             room = await self.db.rooms.get_one(id= booking_data.room_id)
         except ObjectNotFoundException:
-            raise RoomExistsException
+            raise RoomExistsExceptionHTTPExceptions
         hotel = await self.db.hotels.get_one(id = room.hotel_id)
         room_price: int = room.price
         _booking_data = BookingAdd(

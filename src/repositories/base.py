@@ -54,12 +54,13 @@ class BaseRepository:
                  .options(joinedload(self.model.facilities))
                  .filter(*filters)
                  .filter_by(**filter_by))
-        result = self.session.execute(query)
+        result = await self.session.execute(query)
         try:
-            model = result.scalar_one()
+            model = result.unique().scalar_one()
+            return RoomsWithRels.model_validate(model)
         except NoResultFound:
             raise ObjectNotFoundException
-        return RoomsWithRels.model_validate(model)
+
 
     async def get_one_or_none_with_facilities(self, *filters, **filter_by ):
         query = (select(self.model)
@@ -157,10 +158,20 @@ class BaseRepository:
             .values(**data.model_dump(exclude_unset=isPatch))
             .returning(self.model)
         )
-        result = await self.session.execute(query)
-        model = result.scalars().one_or_none()
+        try:
+            result = await self.session.execute(query)
+            model = result.scalars().one_or_none()
 
-        return self.mapper.map_to_domain_entity(model)
+            return self.mapper.map_to_domain_entity(model)
+        except IntegrityError as ex:
+            print(f"{type(ex.orig.__cause__)=}")
+            if isinstance(ex.orig.__cause__, UniqueViolationError):
+                raise ObjectAlreadyExistsException from ex
+            else:
+                logging.exception(
+                    f"Незнакомая ошибка: не удалось добавить данные в БД, входные данные={data}"
+                )
+                raise ex
 
     async def get_filtered(self, *filter, **filter_by):
         query = (

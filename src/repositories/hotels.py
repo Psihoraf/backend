@@ -1,6 +1,6 @@
 from datetime import date
 
-
+from pydantic import BaseModel
 from sqlalchemy import select
 
 from src.models.hotels import HotelsOrm
@@ -39,3 +39,9 @@ class HotelsRepository(BaseRepository):
         result = await self.session.execute(query)
 
         return [self.mapper.map_to_domain_entity(hotel) for hotel in result.scalars().all()]
+
+    async def get_hotel_to_check_existence(self,*filter, **filter_by):
+        query = select(self.model).filter(*filter).filter_by(**filter_by)
+        result = await self.session.execute(query)
+        model = result.scalars().one_or_none()
+        return model
