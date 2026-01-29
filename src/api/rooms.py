@@ -70,7 +70,7 @@ async def add_room(hotel_id: int, db:DBDep,data_room: RoomPatchRequest = Body(op
 
     room = await RoomsService(db).add_room(hotel_id,data_room)
 
-    return {"Status":"OK", "room":room}
+    return {"room":room}
 
 @router.delete("/rooms/{room_id}")
 async def delete_room(hotel_id:int, room_id:int, db:DBDep):

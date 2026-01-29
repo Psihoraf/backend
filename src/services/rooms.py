@@ -35,9 +35,9 @@ class RoomsService(BaseService):
 
         rooms_facilities_data = [RoomsFacilitiesAdd(room_id=room.id, facility_id=f_id) for f_id in
                                  data_room.facilities_ids]
-        if "facilities_ids" in data_room:
+        if data_room.facilities_ids:
             try:
-                room = await self.db.rooms_facilities.add_bulk(rooms_facilities_data)
+                await self.db.rooms_facilities.add_bulk(rooms_facilities_data)
             except IntegrityError:
                 raise FacilitiesNotFoundExceptionHTTPException(
                     detail=f"Некоторые удобства из списка: {data_room.facilities_ids} не найдены")
@@ -45,7 +45,7 @@ class RoomsService(BaseService):
         return room
 
     async def delete_room(self,hotel_id:int,room_id:int ):
-        await self.db.rooms.delete(hotel_id, room_id)
+        await self.db.rooms.delete(hotel_id = hotel_id, id=room_id)
         await self.db.commit()
 
     async def edit_room_partially(self, data_room:RoomPatchRequest, room_id:int, hotel_id:int, exclude_unset: bool = False):

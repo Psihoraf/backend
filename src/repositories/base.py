@@ -144,8 +144,8 @@ class BaseRepository:
 
 
 
-    async def delete(self, **filter_by):
-        query = delete(self.model).filter_by(**filter_by)
+    async def delete(self, *filter, **filter_by):
+        query = delete(self.model).filter(*filter).filter_by(**filter_by)
         result = await self.session.execute(query)
         if result.rowcount == 0:
             raise ObjectNotFoundException
