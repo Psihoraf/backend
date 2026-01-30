@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
+from src.Schemas.images import Images, ImageForShow
 from src.Schemas.rooms import Rooms
 
 
@@ -20,7 +21,8 @@ class HotelResponse(HotelAdd):
 
 
 class HotelWithImage(Hotel):
-    image_name: str | None = Field(None)
+    model_config = ConfigDict(from_attributes=True)
+    images: list[ImageForShow]
 
 class HotelPATCH(HotelModel):
     title: str = None

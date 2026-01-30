@@ -29,7 +29,7 @@ class HotelsService(BaseService):
         )
 
     async def get_hotel(self, hotel_id:int):
-        return await self.db.hotels.get_one(id=hotel_id)
+        return await self.db.hotels.get_one_with_image(id=hotel_id)
 
     async def delete_hotel(self, hotel_id:int):
         try:

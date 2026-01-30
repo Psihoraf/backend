@@ -8,6 +8,7 @@ from sqlalchemy.exc import NoResultFound, IntegrityError
 from sqlalchemy.orm import joinedload
 
 from src.Schemas.hotels import HotelWithImage
+from src.Schemas.images import ImageForShow
 from src.exceptions import ObjectNotFoundException, ObjectAlreadyExistsException
 from src.Schemas.rooms import RoomsWithRels
 from src.repositories.mappers.base import DataMapper
@@ -52,12 +53,13 @@ class BaseRepository:
 
     async def get_one_with_image(self,*filters, **filter_by ):
         query = (select(self.model)
-                 .options(joinedload(self.model.image))
+                 .options(joinedload(self.model.images))
                  .filter(*filters)
                  .filter_by(**filter_by))
         result = await self.session.execute(query)
         try:
             model = result.unique().scalar_one()
+
             return HotelWithImage.model_validate(model)
         except NoResultFound:
             raise ObjectNotFoundException

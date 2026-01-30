@@ -1,13 +1,18 @@
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class ImageAddIntoBD(BaseModel):
     image_name: str = Field(min_length=1)
     image_bites: bytes
+
 class Images(ImageAddIntoBD):
     id: int
 
+class ImageForShow(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    image_name: str = Field(min_length=1)
 class HotelsImagesAdd(BaseModel):
     hotel_id: int
     image_id:int
