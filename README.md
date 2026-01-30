@@ -42,3 +42,5 @@ docker run --name booking_nginx \
     -p 443:443 -d nginx
 
 docker build -t booking_image .
+
+изображения, удаление удобств через putch, сделать более удобные примеры

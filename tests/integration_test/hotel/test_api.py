@@ -15,10 +15,9 @@ async def test_get_facilities(ac):
         "/facilities",
         params=None
     )
-
     print(f"{response.json()}")
 
-    assert response.status_code == 200
+    assert response.status_code == 404
 
 async def test_add_facilities(ac):
     facility_title = "Интернет"

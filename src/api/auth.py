@@ -30,7 +30,7 @@ async def login_user(data: UserRequestAdd, response:Response, db:DBDep, request:
         raise UserAlreadyLogInHTTPException
 
     response.set_cookie("access_token", access_token)
-    return {"Вы вошли как ":data.email, "access_token": access_token}
+    return {"email":data.email, "access_token": access_token}
 
 
 @router.get("/me")

@@ -8,8 +8,9 @@ class FacilitiesService(BaseService):
         return await self.db.facilities.get_all()
 
     async def add_facility(self, data_facility:FacilityAdd):
-        await self.db.facilities.add(data_facility)
+        facility = await self.db.facilities.add(data_facility)
         await self.db.commit()
+        return facility
 
     async def add_bulk(self, rooms_facilities_data:list[RoomsFacilitiesAdd]):
         await self.db.rooms_facilities.add_bulk(rooms_facilities_data)

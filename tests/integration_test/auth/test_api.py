@@ -2,11 +2,13 @@ import pytest
 
 
 @pytest.mark.parametrize("email, password, status_code", [
-    ("k0t@pes.com", "1234", 200),
-    ("k0t@ppes.com", "1234", 200),
-    ("k0t1@pes.com", "1235", 200),
+    ("k0t@pes.com", "QQqq33**", 200),
+    ("k0t@ppes.com", "1234", 401),
+    ("k0t@pes.com", "QQqq33**", 409),
     ("abcde", "1235", 422),
-    ("abcde@abc", "1235", 422),
+    ("abcde@abc", "QQqq33**", 422),
+    ("abcde@abc.ru", "QQqq33**", 200),
+    ("", "QQqq33**", 422),
 ])
 async def test_auth_flow(email: str, password: str, status_code: int, ac):
     # /register

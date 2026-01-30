@@ -92,12 +92,12 @@ class RoomsExistsExceptionHTTPExceptions(MegaBroniratorHTTPExceptions):
 
 
 class UserWithSuchEmailAlreadyExistsHTTPExceptions(MegaBroniratorHTTPExceptions):
-    status_code = 400
+    status_code = 409
     detail = "Пользователь уже существует!"
 
 
 class UserNotFoundHTTPException(MegaBroniratorHTTPExceptions):
-    status_code = 401
+    status_code = 404
     detail = "Пользователь не найден!"
 
 
