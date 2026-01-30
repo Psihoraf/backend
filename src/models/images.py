@@ -15,5 +15,5 @@ class ImagesOrm(Base):
 class HotelsImagesOrm(Base):
     __tablename__ = "hotels_images"
     id: Mapped[int] = mapped_column(primary_key=True)
-    hotel_id: Mapped[int] = mapped_column(ForeignKey("hotels.id"))
-    image_id: Mapped[int] = mapped_column(ForeignKey("images.id"))
+    hotel_id: Mapped[int] = mapped_column(ForeignKey("hotels.id", ondelete="CASCADE"))
+    image_id: Mapped[int] = mapped_column(ForeignKey("images.id", ondelete="CASCADE"))

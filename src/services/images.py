@@ -3,6 +3,7 @@ import shutil
 from fastapi import UploadFile
 
 from src.Schemas.images import ImageAddIntoBD, HotelsImagesAdd
+from src.exceptions import ObjectNotFoundException, RoomExistsExceptionHTTPExceptions
 from src.services.base import BaseService
 from src.tasks.tasks import resize_image
 
@@ -10,6 +11,10 @@ class ImagesService(BaseService):
     async def add_image(self, file: UploadFile,
                        image_name:str|None,
                        hotel_id:int):
+        try:
+            await self.db.hotels.get_one(id= hotel_id)
+        except ObjectNotFoundException:
+            raise RoomExistsExceptionHTTPExceptions
 
         image_path = f"src/static/images/{file.filename}"
 

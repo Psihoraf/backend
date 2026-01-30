@@ -1,8 +1,9 @@
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
 
 class ImageAddIntoBD(BaseModel):
-    image_name: str
+    image_name: str = Field(min_length=1)
     image_bites: bytes
 class Images(ImageAddIntoBD):
     id: int

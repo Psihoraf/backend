@@ -59,7 +59,7 @@ async def expired_token_exception_handler(request: Request, exc: ExpiredSignatur
     return JSONResponse(
         status_code=401,
         content={
-            "detail": "Время действия токена истекло, зарегистрируйтесь снова",
+            "detail": "Не предоставлен токен доступа либо его время действия истекло, авторизуйтесь снова",
         }
     )
 if __name__ == "__main__":

@@ -11,15 +11,16 @@ class HotelAdd(BaseModel):
     location: str = Field(min_length=1)
 
 
-class HotelAddWithImage(HotelModel):
-    title: str
-    location: str
-    image_name: str  | None = Field(None)
+
 
 class Hotel(HotelAdd):
     id:int
 class HotelResponse(HotelAdd):
     rooms: list[Rooms] = []
+
+
+class HotelWithImage(Hotel):
+    image_name: str | None = Field(None)
 
 class HotelPATCH(HotelModel):
     title: str = None
