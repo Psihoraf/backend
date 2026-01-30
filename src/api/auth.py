@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, Response, Request
+from fastapi import APIRouter, Response, Request, Body
 
 from src.exceptions import UserAlreadyExistsException, UserWithSuchEmailAlreadyExistsHTTPExceptions, \
     UserNotFoundException, UserNotFoundHTTPException, UserAlreadyLogInHTTPException, UserAlreadyLogInException, \
@@ -12,7 +12,16 @@ from src.services.auth import AuthService
 router = APIRouter(prefix="/auth", tags=["Авторизация и аутентификация"])
 
 @router.post("/register")
-async def register_user(data: UserRequestAdd, db:DBDep):
+async def register_user(db:DBDep, data: UserRequestAdd = Body(openapi_examples ={
+            "1":{"summary": "User1", "value":{
+                "email":"user@example.com",
+                "password":"QQqq11**",
+            } },
+            "2":{"summary": "User2", "value":{
+                "title":"user2@example.com",
+                "location":"PPpp22$$",
+            }},
+        })):
     try:
         await AuthService(db).register_user(data)
     except UserAlreadyExistsException:
@@ -20,7 +29,16 @@ async def register_user(data: UserRequestAdd, db:DBDep):
     return {f"Пользователь: {data.email} успешно зарегистрирован"}
 
 @router.post("/login")
-async def login_user(data: UserRequestAdd, response:Response, db:DBDep, request:Request):
+async def login_user(response:Response, db:DBDep, request:Request, data: UserRequestAdd= Body(openapi_examples ={
+            "1":{"summary": "User1", "value":{
+                "email":"user@example.com",
+                "password":"QQqq11**",
+            } },
+            "2":{"summary": "User2", "value":{
+                "title":"user2@example.com",
+                "location":"PPpp22$$",
+            }},
+        })):
     try:
         request.cookies.get("access_token")
         access_token = await AuthService(db).login_user(data)
